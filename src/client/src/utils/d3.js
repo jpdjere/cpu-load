@@ -24,7 +24,7 @@ export const startD3 = () => {
     createGraph: (importData) => {
       let data = [...importData];
 
-      const tenMinuteDomain = [startDate, new Date(new Date() - (-10) * 60000)];
+      const tenMinuteDomain = [startDate, new Date(new Date() - (-1) * 60000)];
       x.domain(tenMinuteDomain);
       y.domain([0, d3.max(data, (d) => { return d.value; })]);
     
@@ -52,23 +52,24 @@ export const startD3 = () => {
         .attr("class", "line")
         .attr("fill", "none")
         .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
+        .attr("stroke-width", 2.5)
         .attr("d", valueLine);
     },
     updateGraph: (importData) => {
       let data = [...importData];
 
       const [firstDate, lastDate] = x.domain();
-      if (lastDate < new Date()) {
-        x.domain([new Date(firstDate - (-1/60) * 60000), new Date(lastDate - (-1/60) * 60000)]);
+      const isXAxisChange = lastDate < new Date();
+      if (isXAxisChange) {
+        x.domain([new Date(firstDate - (-1/60) * 60000), new Date(lastDate - (-1/30) * 60000)]);
 
         svg.select(".axis--x")
           .transition().duration(500)
           .call(d3.axisBottom(x));
       }
-    
+
+      const [, previousYDomainMax] = y.domain();
       const yDomainMax = d3.max(data, (d) => { return d.value; });
-      // const yDomainMin = d3.min(data, (d) => { return d.value; });
       y.domain([0, yDomainMax]);
      
       svg.select(".axis--y")
@@ -84,6 +85,45 @@ export const startD3 = () => {
         .transition()
         .duration(500)
         .attr("d", valueLine(data));
+
+      var formatTime = d3.timeFormat("%e %B");
+
+      var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+      
+      const isYAxisChange = previousYDomainMax !== yDomainMax;
+      const shouldRedrawDots = isYAxisChange || isXAxisChange;
+      const lastDataPoint = data[data.length - 1];
+      const pointsData = shouldRedrawDots ? data : ([lastDataPoint] || []);
+      if(shouldRedrawDots) {
+        svg.selectAll(".dot").remove();
+      }
+      setTimeout(() => {
+        svg.selectAll("dot")
+          .data(pointsData)
+          .enter().append("circle")
+            .attr("class", "dot")
+            .attr("r", 2.5)
+            .attr("cx", function(d) { return x(d.date); })
+            .attr("cy", function(d) { return y(d.value); })
+            .style("cursor", "pointer")
+            .on("mouseover", function(event, d) {
+              div.html(formatTime(d.date) + "<br/>" + d.value)
+                .style("left", (event.pageX) + "px")
+                .style("top", (event.pageY - 28) + "px");
+              })
+            .on("mouseout", function(d) {
+              // d3.select(this).remove();
+              // svg.selectAll(".vertical-line").remove();
+              div.transition()
+                .duration(500)
+                .style("opacity", 0);
+              });
+
+      } , shouldRedrawDots ? 500 : 0);
+     
+
     
     }
   }

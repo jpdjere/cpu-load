@@ -23,9 +23,8 @@ export const useGetCPULoad = (shouldMockHighLoad: boolean) => {
     const dataPoint = await fetchDataPoint();
     setData(points => [...points, {date: new Date(), value: dataPoint.cpuLoadAverage + mockHighLoad}]);
     setFirstCallDone(true);
-  }, firstCallDone ? 5000 : 0)
+  }, firstCallDone ? 10000 : 0)
 
-  
   const lastCPULoadValue = data.length ? data[data.length - 1].value + mockHighLoad : 0;
 
   return {
