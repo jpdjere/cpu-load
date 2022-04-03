@@ -2,12 +2,12 @@ import * as d3 from 'd3';
 
 export const startD3 = () => {
   // set the dimensions and margins of the graph
-  var margin = { top: 20, right: 20, bottom: 50, left: 70 },
+  const margin = { top: 20, right: 20, bottom: 50, left: 70 },
   width = 960 - margin.left - margin.right,
   height = 500 - margin.top - margin.bottom;
 
   // append the svg object to the body of the page
-  var svg = d3.select("body").append("svg")
+  const svg = d3.select("body").append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
@@ -15,15 +15,42 @@ export const startD3 = () => {
 
   // add X axis and Y axis
   
-  var x = d3.scaleTime().range([0, width]);
-  var y = d3.scaleLinear().range([height, 0]);
+  const x = d3.scaleTime().range([0, width]);
+  const y = d3.scaleLinear().range([height, 0]);
 
   const startDate = new Date();
 
-  return {
-    createGraph: (importData) => {
-      let data = [...importData];
+  const rectHover = svg.append("rect")
+    .attr("class", "overlay")
+    .attr("opacity", 0)
+    .attr("z-index", 999)
+    .attr("width", width)
+    .attr("height", height);
 
+  const hoverLineGroup = svg.append("g")
+    .attr("class", "hover-line");
+
+  const hoverLine = hoverLineGroup
+    .append("line")
+    .attr("stroke", "#000")
+    .attr("x1", 10).attr("x2", 10) 
+    .attr("y1", 0).attr("y2", height); 
+
+  rectHover  
+    .on("mousemove", function (event) {
+      const [mouse_x, mouse_y] = d3.pointer(event);
+
+      const graph_y = y.invert(mouse_y);
+      const graph_x = x.invert(mouse_x);
+
+      console.log({graph_x: graph_x.toISOString(), graph_y});
+    
+      hoverLine.attr("x1", mouse_x).attr("x2", mouse_x)
+      hoverLineGroup.style("opacity", 1);
+    });
+
+  return {
+    createGraph: (data) => {
       const tenMinuteDomain = [startDate, new Date(new Date() - (-1) * 60000)];
       x.domain(tenMinuteDomain);
       y.domain([0, d3.max(data, (d) => { return d.value; })]);
@@ -54,6 +81,7 @@ export const startD3 = () => {
         .attr("stroke", "steelblue")
         .attr("stroke-width", 2.5)
         .attr("d", valueLine);
+
     },
     updateGraph: (importData) => {
       let data = [...importData];
@@ -86,16 +114,20 @@ export const startD3 = () => {
         .duration(500)
         .attr("d", valueLine(data));
 
+      // Add tooltip
       var formatTime = d3.timeFormat("%e %B");
 
       var div = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
+
+      
       
       const isYAxisChange = previousYDomainMax !== yDomainMax;
       const shouldRedrawDots = isYAxisChange || isXAxisChange;
       const lastDataPoint = data[data.length - 1];
       const pointsData = shouldRedrawDots ? data : ([lastDataPoint] || []);
+
       if(shouldRedrawDots) {
         svg.selectAll(".dot").remove();
       }
@@ -114,8 +146,6 @@ export const startD3 = () => {
                 .style("top", (event.pageY - 28) + "px");
               })
             .on("mouseout", function(d) {
-              // d3.select(this).remove();
-              // svg.selectAll(".vertical-line").remove();
               div.transition()
                 .duration(500)
                 .style("opacity", 0);
@@ -128,3 +158,4 @@ export const startD3 = () => {
     }
   }
 }
+
