@@ -47,7 +47,7 @@ export const startD3 = () => {
 
   return {
     createGraph: (data) => {
-      const tenMinuteDomain = [startDate, new Date(new Date() - (-1) * 60 * 1000)];
+      const tenMinuteDomain = [startDate, new Date(new Date() - (-1) * 10 * 60 * ONE_SECOND_IN_MS)];
       x.domain(tenMinuteDomain);
       y.domain([0, d3.max(data, (d) => { return d.value; })]);
     

@@ -72,6 +72,21 @@ describe("useAlerts hook", () => {
       expect(result.current.isAlert).toBe(true);
     })
 
+    it("should prepend a new alert phase if the the cpu load surpasses the threshold for two minutes", () => {
+      const preexistingAlertPhases = [{ start: new Date(), end: new Date() }];
+      const { result } = renderHook(({ defaults }) => useAlerts(OVER_LIMIT_LOAD, defaults),   {
+        initialProps: {
+          defaults: {
+            defaultConsecutiveHighs: 11,
+            defaultAlertPhases : preexistingAlertPhases
+          }
+        },
+      })
+      expect(result.current.alertPhases.length).toEqual(preexistingAlertPhases.length + 1);
+      expect(result.current.alertPhases[0].start).toBeDefined();
+      expect(result.current.alertPhases[0].end).not.toBeDefined();
+    });
+
   })
 
   describe("low cpu load data point is processed", () => {
@@ -121,16 +136,22 @@ describe("useAlerts hook", () => {
       expect(result.current.isAlert).toBe(false);
     })
 
+    it("should close the ongoing alert phase (with a timestamp) if the the cpu load is under the threshold for two minutes", () => {
+      const lastAlertStartTimeStamp = new Date();
+      const preexistingAlertPhases = [{ start: lastAlertStartTimeStamp }, { start: new Date(), end: new Date() }];
+      const { result } = renderHook(({ defaults }) => useAlerts(UNDER_LIMIT_LOAD, defaults),   {
+        initialProps: {
+          defaults: {
+            defaultConsecutiveLows: 11,
+            defaultAlertPhases : preexistingAlertPhases
+          }
+        },
+      })
+      expect(result.current.alertPhases.length).toEqual(preexistingAlertPhases.length);
+      expect(result.current.alertPhases[0].start).toBe(lastAlertStartTimeStamp);
+      expect(result.current.alertPhases[0].end).toBeDefined();
+    });
+
   })
 
-
 })
-
-
-// const { result } = renderHook(({ defaults }) => useAlerts(OVER_LIMIT_LOAD, defaults),   {
-//   initialProps: {
-//     defaults: {
-//       defaultIsAlert: false
-//     }
-//   },
-// })

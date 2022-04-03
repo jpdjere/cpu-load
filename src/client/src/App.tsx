@@ -6,7 +6,7 @@ import { useGetCPULoad, useAlerts, useD3TimeGraph } from './hooks';
 function App() {
   const [mockHighLoad, setMockHighLoad] = useState(false);
   const { data, lastCPULoadValue } = useGetCPULoad(mockHighLoad);
-  const { isAlert, alertsAmount, recoveryAmount } = useAlerts(lastCPULoadValue);
+  const { isAlert, alertsAmount, recoveryAmount, alertPhases } = useAlerts(lastCPULoadValue);
   useD3TimeGraph(data);
 
 
@@ -20,6 +20,10 @@ function App() {
         <p>Periods under high CPU load: {alertsAmount}</p>
         <p>Recoveries from high CPU load: {recoveryAmount}</p>
         <button onClick={() => setMockHighLoad(mock => !mock)}>Mock High Load</button>
+      </div>
+      <div>
+        <p>Alert Phases</p>
+        {alertPhases.map(({start, end}, index) => <p key={start.toISOString()}>Start: {start.toDateString()} - End: {end ? end.toDateString() : "ONGOING"}</p>)}
       </div>
     </div>
   );
