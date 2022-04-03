@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { DATA_POINTS_IN_TWO_MINUTES } from "../constants";
 
 type AlertPhase = {
-  start: Date,
-  end?: Date
-}
+  start: Date;
+  end?: Date;
+};
 
 type DefaultInitialValues = {
   defaultConsecutiveHighs: number;
@@ -13,7 +13,7 @@ type DefaultInitialValues = {
   defaultRecoveryAmount: number;
   defaultIsAlert: boolean;
   defaultAlertPhases: AlertPhase[];
-}
+};
 
 export const useAlerts = (
   cpuLoad: number,
@@ -27,22 +27,33 @@ export const useAlerts = (
     defaultIsAlert,
     defaultAlertPhases,
   } = defaults;
-  const [consecutiveHighs, setConsecutiveHighs] = useState(defaultConsecutiveHighs || 0);
-  const [consecutiveLows, setConsecutiveLows] = useState(defaultConsecutiveLows || 0);
+  const [consecutiveHighs, setConsecutiveHighs] = useState(
+    defaultConsecutiveHighs || 0
+  );
+  const [consecutiveLows, setConsecutiveLows] = useState(
+    defaultConsecutiveLows || 0
+  );
   const [alertsAmount, setAlertsAmount] = useState(defaultAlertsAmount || 0);
-  const [recoveryAmount, setRecoveryAmount] = useState(defaultRecoveryAmount || 0);
+  const [recoveryAmount, setRecoveryAmount] = useState(
+    defaultRecoveryAmount || 0
+  );
   const [isAlert, setIsAlert] = useState(defaultIsAlert || false);
 
-  const [alertPhases, setAlertPhases] = useState<AlertPhase[]>(defaultAlertPhases || []);
+  const [alertPhases, setAlertPhases] = useState<AlertPhase[]>(
+    defaultAlertPhases || []
+  );
 
   useEffect(() => {
-    if(cpuLoad >= 1) {
+    if (cpuLoad >= 1) {
       setConsecutiveHighs(consecutiveHighs + 1);
       setConsecutiveLows(0);
       if (consecutiveHighs + 1 === DATA_POINTS_IN_TWO_MINUTES) {
         setIsAlert(true);
         setAlertsAmount(alertsAmount + 1);
-        setAlertPhases(alertPhases => [{ start: new Date() }, ...alertPhases]);
+        setAlertPhases((alertPhases) => [
+          { start: new Date() },
+          ...alertPhases,
+        ]);
       }
     } else {
       setConsecutiveHighs(0);
@@ -50,15 +61,21 @@ export const useAlerts = (
       if (consecutiveLows + 1 === DATA_POINTS_IN_TWO_MINUTES) {
         setIsAlert(false);
         setRecoveryAmount(recoveryAmount + 1);
-        setAlertPhases(alertPhases => {
+        setAlertPhases((alertPhases) => {
           const lastAlertPhase = alertPhases[0];
-          const previousAlertPhases = alertPhases.slice(0, alertPhases.length - 1);
-          const newAlertPhases = [{...lastAlertPhase, end: new Date()}, ...previousAlertPhases];
-          return newAlertPhases
+          const previousAlertPhases = alertPhases.slice(
+            0,
+            alertPhases.length - 1
+          );
+          const newAlertPhases = [
+            { ...lastAlertPhase, end: new Date() },
+            ...previousAlertPhases,
+          ];
+          return newAlertPhases;
         });
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cpuLoad]);
 
   return {
@@ -67,7 +84,6 @@ export const useAlerts = (
     consecutiveLows,
     alertsAmount,
     recoveryAmount,
-    alertPhases
-  }
-
-}
+    alertPhases,
+  };
+};
