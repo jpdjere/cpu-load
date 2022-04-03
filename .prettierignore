@@ -1,0 +1,6 @@
+# Ignore artifacts:
+build
+coverage
+
+src/client/build
+src/client/dist

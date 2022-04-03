@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './App.css';
+import { Title } from './components/Title';
 import { useGetCPULoad, useAlerts, useD3TimeGraph } from './hooks';
 
 
@@ -12,7 +13,9 @@ function App() {
 
   return (
     <div className="App">
-      <div>
+      <Title />
+      
+      {/* <div>
         <p>Current avg. CPU Load: {lastCPULoadValue.toFixed(3)}</p>
         <p>{isAlert ? "Alert: High CPU load" : "Normal CPU Load"}</p>
       </div>
@@ -24,7 +27,7 @@ function App() {
       <div>
         <p>Alert Phases</p>
         {alertPhases.map(({start, end}, index) => <p key={start.toISOString()}>Start: {start.toDateString()} - End: {end ? end.toDateString() : "ONGOING"}</p>)}
-      </div>
+      </div> */}
     </div>
   );
 }
