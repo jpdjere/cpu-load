@@ -7,43 +7,32 @@ export const startD3 = () => {
   width = 960 - margin.left - margin.right,
   height = 500 - margin.top - margin.bottom;
 
-  // append the svg object to the body of the page
   const svg = d3.select("body").append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-  // add X axis and Y axis
-  
+  // Create X axis and Y axis
   const x = d3.scaleTime().range([0, width]);
   const y = d3.scaleLinear().range([height, 0]);
 
+  // Add X axis label:
+  svg.append("text")
+      .attr("text-anchor", "end")
+      .attr("x", width)
+      .attr("y", height + margin.top + 30)
+      .text("Time (hh.mm)");
+
+  // Y axis label:
+  svg.append("text")
+      .attr("text-anchor", "end")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -margin.left+20)
+      .attr("x", -margin.top)
+      .text("Avg. CPU Usage")
+
   const startDate = new Date();
-
-  const rectHover = svg.append("rect")
-    .attr("class", "overlay")
-    .attr("opacity", 0)
-    .attr("z-index", 999)
-    .attr("width", width)
-    .attr("height", height);
-
-  const hoverLineGroup = svg.append("g")
-    .attr("class", "hover-line");
-
-  const hoverLine = hoverLineGroup
-    .append("line")
-    .attr("stroke", "#000")
-    .attr("x1", 10).attr("x2", 10) 
-    .attr("y1", 0).attr("y2", height); 
-
-  rectHover  
-    .on("mousemove", function (event) {
-      const [mouse_x] = d3.pointer(event);
-
-      hoverLine.attr("x1", mouse_x).attr("x2", mouse_x)
-      hoverLineGroup.style("opacity", 1);
-    });
 
   return {
     createGraph: (data) => {
@@ -65,7 +54,7 @@ export const startD3 = () => {
         .attr("class", "axis--y")
         .call(d3.axisLeft(y));
         
-      // add the Line
+      // Add the Line
       const valueLine = d3.line()
         .x((d) => { return x(d.date); })
         .y((d) => { return y(d.value); });
@@ -83,7 +72,10 @@ export const startD3 = () => {
       const [firstDate, lastDate] = x.domain();
       const isXAxisChange = lastDate < new Date();
       if (isXAxisChange) {
-        const domainTenSecondsForward = [new Date(firstDate - (-1) * 10 * ONE_SECOND_IN_MS), new Date(lastDate - (-1) * 10 * ONE_SECOND_IN_MS)]
+        const domainTenSecondsForward = [
+          new Date(firstDate - (-1) * 10 * ONE_SECOND_IN_MS),
+          new Date(lastDate - (-1) * 10 * ONE_SECOND_IN_MS)
+        ];
         x.domain(domainTenSecondsForward);
 
         svg.select(".axis--x")
@@ -109,12 +101,7 @@ export const startD3 = () => {
         .duration(500)
         .attr("d", valueLine(data))
 
-      // Add tooltip
-      const formatTime = d3.timeFormat("%e %B");
-
-      const div = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 1);
+      const formatTime = d3.timeFormat("%I:%M");
 
       const isYAxisChange = previousYDomainMax !== yDomainMax;
       const shouldRedrawDots = isYAxisChange || isXAxisChange;
@@ -122,7 +109,7 @@ export const startD3 = () => {
       if(shouldRedrawDots) {
         svg.selectAll(".dot").remove();
       }
-
+      
       const lastDataPoint = data[data.length - 1];
       const pointsData = shouldRedrawDots ? data : ([lastDataPoint] || []);
       setTimeout(() => {
@@ -130,21 +117,43 @@ export const startD3 = () => {
           .data(pointsData)
           .enter().append("circle")
             .attr("class", "dot")
-            .attr("r", 3.5)
+            .attr("r", 4)
             .attr("cx", function(d) { return x(d.date); })
             .attr("cy", function(d) { return y(d.value); })
             .style("cursor", "pointer")
             .on("mouseover", function(event, d) {
-              const [mouse_x, mouse_y] = d3.pointer(event);
-              div.html(formatTime(d.date) + "<br/>" + d.value)
+
+              // Enlarge datapoint dot
+              d3.select(this)
+                .transition()
+                .duration(250)
+                .attr("r", 5.5);
+
+              // Append tooltip
+              svg.append("text")
+                .attr("class", "tooltip")
                 .style("opacity", 1)
-                .style("left", (mouse_x) + "px")
-                .style("top", (mouse_y - 28) + "px");
+                .append("tspan").text("Time: " + formatTime(d.date))
+                .attr("y", height - margin.top - 25)
+                .attr("x", margin.left - 50)
+                .append("tspan").text("CPU Load Avg.: " + d.value.toFixed(3))
+                .style("opacity", 1)
+                .attr("y", height - margin.top)
+                .attr("x", margin.left - 50)
               })
             .on("mouseout", function(d) {
-              div.transition()
+              // Resize dot back to normal
+              d3.select(this)
+                .transition()
+                .duration(250)
+                .attr("r", 4);
+
+              // Remove tooltip
+              d3.selectAll(".tooltip")
+                .transition()
                 .duration(500)
                 .style("opacity", 0);
+
               });
 
       }, shouldRedrawDots ? 500 : 0);
@@ -152,7 +161,3 @@ export const startD3 = () => {
     }
   }
 }
-
-// const updateDots = () => {
-  
-// }
