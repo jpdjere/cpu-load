@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { ONE_SECOND_IN_MS } from '../constants';
 
 export const startD3 = () => {
   // set the dimensions and margins of the graph
@@ -38,20 +39,15 @@ export const startD3 = () => {
 
   rectHover  
     .on("mousemove", function (event) {
-      const [mouse_x, mouse_y] = d3.pointer(event);
+      const [mouse_x] = d3.pointer(event);
 
-      const graph_y = y.invert(mouse_y);
-      const graph_x = x.invert(mouse_x);
-
-      console.log({graph_x: graph_x.toISOString(), graph_y});
-    
       hoverLine.attr("x1", mouse_x).attr("x2", mouse_x)
       hoverLineGroup.style("opacity", 1);
     });
 
   return {
     createGraph: (data) => {
-      const tenMinuteDomain = [startDate, new Date(new Date() - (-1) * 60000)];
+      const tenMinuteDomain = [startDate, new Date(new Date() - (-1) * 60 * 1000)];
       x.domain(tenMinuteDomain);
       y.domain([0, d3.max(data, (d) => { return d.value; })]);
     
@@ -70,7 +66,7 @@ export const startD3 = () => {
         .call(d3.axisLeft(y));
         
       // add the Line
-      var valueLine = d3.line()
+      const valueLine = d3.line()
         .x((d) => { return x(d.date); })
         .y((d) => { return y(d.value); });
     
@@ -83,13 +79,12 @@ export const startD3 = () => {
         .attr("d", valueLine);
 
     },
-    updateGraph: (importData) => {
-      let data = [...importData];
-
+    updateGraph: (data) => {
       const [firstDate, lastDate] = x.domain();
       const isXAxisChange = lastDate < new Date();
       if (isXAxisChange) {
-        x.domain([new Date(firstDate - (-1/60) * 60000), new Date(lastDate - (-1/30) * 60000)]);
+        const domainTenSecondsForward = [new Date(firstDate - (-1) * 10 * ONE_SECOND_IN_MS), new Date(lastDate - (-1) * 10 * ONE_SECOND_IN_MS)]
+        x.domain(domainTenSecondsForward);
 
         svg.select(".axis--x")
           .transition().duration(500)
@@ -105,45 +100,46 @@ export const startD3 = () => {
         .call(d3.axisLeft(y));
         
       // Recreate the line
-      var valueLine = d3.line()
+      const valueLine = d3.line()
         .x((d) => { return x(d.date); })
         .y((d) => { return y(d.value); });
     
       svg.select(".line")
         .transition()
         .duration(500)
-        .attr("d", valueLine(data));
+        .attr("d", valueLine(data))
 
       // Add tooltip
-      var formatTime = d3.timeFormat("%e %B");
+      const formatTime = d3.timeFormat("%e %B");
 
-      var div = d3.select("body").append("div")
+      const div = d3.select("body").append("div")
         .attr("class", "tooltip")
-        .style("opacity", 0);
+        .style("opacity", 1);
 
-      
-      
       const isYAxisChange = previousYDomainMax !== yDomainMax;
       const shouldRedrawDots = isYAxisChange || isXAxisChange;
-      const lastDataPoint = data[data.length - 1];
-      const pointsData = shouldRedrawDots ? data : ([lastDataPoint] || []);
-
+      
       if(shouldRedrawDots) {
         svg.selectAll(".dot").remove();
       }
+
+      const lastDataPoint = data[data.length - 1];
+      const pointsData = shouldRedrawDots ? data : ([lastDataPoint] || []);
       setTimeout(() => {
         svg.selectAll("dot")
           .data(pointsData)
           .enter().append("circle")
             .attr("class", "dot")
-            .attr("r", 2.5)
+            .attr("r", 3.5)
             .attr("cx", function(d) { return x(d.date); })
             .attr("cy", function(d) { return y(d.value); })
             .style("cursor", "pointer")
             .on("mouseover", function(event, d) {
+              const [mouse_x, mouse_y] = d3.pointer(event);
               div.html(formatTime(d.date) + "<br/>" + d.value)
-                .style("left", (event.pageX) + "px")
-                .style("top", (event.pageY - 28) + "px");
+                .style("opacity", 1)
+                .style("left", (mouse_x) + "px")
+                .style("top", (mouse_y - 28) + "px");
               })
             .on("mouseout", function(d) {
               div.transition()
@@ -151,11 +147,12 @@ export const startD3 = () => {
                 .style("opacity", 0);
               });
 
-      } , shouldRedrawDots ? 500 : 0);
-     
-
-    
+      }, shouldRedrawDots ? 500 : 0);
+   
     }
   }
 }
 
+// const updateDots = () => {
+  
+// }

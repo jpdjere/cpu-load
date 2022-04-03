@@ -1,24 +1,44 @@
 import { useEffect, useState } from "react";
+import { DATA_POINTS_IN_TWO_MINUTES } from "../constants";
 
-export const useAlerts = (cpuLoad: number) => {
-  const twoMinutesInDataPoints = 12;
-
-  const [consecutiveHighs, setConsecutiveHighs] = useState(0);
-  const [consecutiveLows, setConsecutiveLows] = useState(0);
-  const [isAlert, setIsAlert] = useState(false);
+type DefaultInitialValues = {
+  defaultConsecutiveHighs: number;
+  defaultConsecutiveLows: number;
+  defaultAlertsAmount: number;
+  defaultRecoveryAmount: number;
+  defaultIsAlert: boolean;
+}
+export const useAlerts = (
+  cpuLoad: number,
+  defaults: Partial<DefaultInitialValues> = {}
+) => {
+  const {
+    defaultConsecutiveHighs,
+    defaultConsecutiveLows,
+    defaultAlertsAmount,
+    defaultRecoveryAmount,
+    defaultIsAlert
+  } = defaults;
+  const [consecutiveHighs, setConsecutiveHighs] = useState(defaultConsecutiveHighs || 0);
+  const [consecutiveLows, setConsecutiveLows] = useState(defaultConsecutiveLows || 0);
+  const [alertsAmount, setAlertsAmount] = useState(defaultAlertsAmount || 0);
+  const [recoveryAmount, setRecoveryAmount] = useState(defaultRecoveryAmount || 0);
+  const [isAlert, setIsAlert] = useState(defaultIsAlert || false);
 
   useEffect(() => {
-    if(cpuLoad > 1) {
+    if(cpuLoad >= 1) {
       setConsecutiveHighs(consecutiveHighs + 1);
       setConsecutiveLows(0);
-      if (consecutiveHighs + 1 >= twoMinutesInDataPoints) {
+      if (consecutiveHighs + 1 === DATA_POINTS_IN_TWO_MINUTES) {
         setIsAlert(true);
+        setAlertsAmount(alertsAmount + 1);
       }
-    } else if(cpuLoad < 1) {
+    } else {
       setConsecutiveHighs(0);
       setConsecutiveLows(consecutiveLows + 1);
-      if (consecutiveLows + 1 >= twoMinutesInDataPoints) {
+      if (consecutiveLows + 1 === DATA_POINTS_IN_TWO_MINUTES) {
         setIsAlert(false);
+        setRecoveryAmount(recoveryAmount + 1);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -27,7 +47,9 @@ export const useAlerts = (cpuLoad: number) => {
   return {
     isAlert,
     consecutiveHighs,
-    consecutiveLows
+    consecutiveLows,
+    alertsAmount,
+    recoveryAmount
   }
 
 }
