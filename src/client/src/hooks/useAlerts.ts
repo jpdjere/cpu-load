@@ -43,15 +43,6 @@ export const useAlerts = (
     defaultAlertPhases || []
   );
 
-  console.log({
-    isAlert,
-    consecutiveHighs,
-    consecutiveLows,
-    alertsAmount,
-    recoveryAmount,
-    alertPhases,
-  })
-
   useEffect(() => {
     if (cpuLoad >= 1) {
       setConsecutiveHighs(consecutiveHighs + 1);

@@ -90,11 +90,11 @@ export const LineGraph = ({ data }) => {
       .attr("stroke", "steelblue")
       .attr("stroke-width", 2.5)
       .attr("d", valueLine);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(
     () => {
-      console.log("data rerender", data);
       const [firstDate, lastDate] = x.current.domain();
       const isXAxisChange = lastDate < new Date();
       if (isXAxisChange) {
@@ -179,7 +179,6 @@ export const LineGraph = ({ data }) => {
                 .text("Time: " + formatTime(d.date))
                 .attr("y", height - margin.top - 25)
                 .attr("x", margin.left - 50)
-                .attr("fill", "steelblue")
                 .attr("fill-stroke", "3")
                 .append("tspan")
                 .text("CPU Load Avg.: " + d.value.toFixed(3))

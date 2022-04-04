@@ -1,11 +1,11 @@
 {
   "name": "cpu-load-monitoring-app",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "build": "./node_modules/.bin/ts-node build.ts",
     "lint": "eslint . --ext .ts",
     "start": "node -r module-alias/register ./dist --env=production",
-    "start:dev": "nodemon",
+    "start:dev": "concurrently \"nodemon\" \"cd src/client && yarn start\"",
     "test": "nodemon --config ./spec/nodemon.json",
     "test:no-reloading": "./node_modules/.bin/ts-node --files -r tsconfig-paths/register ./spec"
   },
@@ -59,6 +59,7 @@
   ],
   "dependencies": {
     "command-line-args": "^5.2.1",
+    "concurrently": "^7.1.0",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "helmet": "^5.0.2",
