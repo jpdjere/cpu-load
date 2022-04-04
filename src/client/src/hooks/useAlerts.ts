@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DATA_POINTS_IN_TWO_MINUTES } from "../constants";
 
-type AlertPhase = {
+export type AlertPhase = {
   start: Date;
   end?: Date;
 };
@@ -43,6 +43,15 @@ export const useAlerts = (
     defaultAlertPhases || []
   );
 
+  console.log({
+    isAlert,
+    consecutiveHighs,
+    consecutiveLows,
+    alertsAmount,
+    recoveryAmount,
+    alertPhases,
+  })
+
   useEffect(() => {
     if (cpuLoad >= 1) {
       setConsecutiveHighs(consecutiveHighs + 1);
@@ -58,14 +67,14 @@ export const useAlerts = (
     } else {
       setConsecutiveHighs(0);
       setConsecutiveLows(consecutiveLows + 1);
-      if (consecutiveLows + 1 === DATA_POINTS_IN_TWO_MINUTES) {
+      if (consecutiveLows + 1 === DATA_POINTS_IN_TWO_MINUTES && isAlert) {
         setIsAlert(false);
         setRecoveryAmount(recoveryAmount + 1);
         setAlertPhases((alertPhases) => {
           const lastAlertPhase = alertPhases[0];
           const previousAlertPhases = alertPhases.slice(
-            0,
-            alertPhases.length - 1
+            1,
+            alertPhases.length
           );
           const newAlertPhases = [
             { ...lastAlertPhase, end: new Date() },

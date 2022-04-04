@@ -3,23 +3,23 @@ import * as d3 from "d3";
 import { ONE_SECOND_IN_MS } from "../constants";
 
 export const LineGraph = ({ data }) => {
-
   const d3Container = useRef(null);
   const svg = useRef(null);
   const x = useRef(null);
   const y = useRef(null);
 
   const margin = { top: 20, right: 20, bottom: 50, left: 70 },
-  width = 960 - margin.left - margin.right,
-  height = 500 - margin.top - margin.bottom;
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
   useEffect(() => {
-
-      // Create X axis and Y axis
+    // Create X axis and Y axis
     x.current = d3.scaleTime().range([0, width]);
     y.current = d3.scaleLinear().range([height, 0]);
 
-    svg.current = d3.select(d3Container.current).append("svg")
+    svg.current = d3
+      .select(d3Container.current)
+      .append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
@@ -46,7 +46,7 @@ export const LineGraph = ({ data }) => {
 
     const tenMinuteDomain = [
       startDate,
-      new Date(new Date() - (-1) * 10 * 60 * ONE_SECOND_IN_MS),
+      new Date(new Date() - -1 * 10 * 60 * ONE_SECOND_IN_MS),
     ];
     x.current.domain(tenMinuteDomain);
     y.current.domain([
@@ -67,7 +67,10 @@ export const LineGraph = ({ data }) => {
       .attr("dy", ".15em")
       .attr("transform", "rotate(-65)");
 
-    svg.current.append("g").attr("class", "axis--y").call(d3.axisLeft(y.current));
+    svg.current
+      .append("g")
+      .attr("class", "axis--y")
+      .call(d3.axisLeft(y.current));
 
     // Add the Line
     const valueLine = d3
@@ -96,8 +99,8 @@ export const LineGraph = ({ data }) => {
       const isXAxisChange = lastDate < new Date();
       if (isXAxisChange) {
         const domainTenSecondsForward = [
-          new Date(firstDate - (-1) * 10 * ONE_SECOND_IN_MS),
-          new Date(lastDate - (-1) * 10 * ONE_SECOND_IN_MS),
+          new Date(firstDate - -1 * 10 * ONE_SECOND_IN_MS),
+          new Date(lastDate - -1 * 10 * ONE_SECOND_IN_MS),
         ];
         x.current.domain(domainTenSecondsForward);
 
@@ -176,6 +179,8 @@ export const LineGraph = ({ data }) => {
                 .text("Time: " + formatTime(d.date))
                 .attr("y", height - margin.top - 25)
                 .attr("x", margin.left - 50)
+                .attr("fill", "steelblue")
+                .attr("fill-stroke", "3")
                 .append("tspan")
                 .text("CPU Load Avg.: " + d.value.toFixed(3))
                 .style("opacity", 1)
@@ -200,5 +205,10 @@ export const LineGraph = ({ data }) => {
     [data]
   );
 
-  return <div className="d3-component" ref={d3Container} />;
+  return (
+    <div
+      ref={d3Container}
+      className="shadow-lg rounded-2xl p-6 mt-3 mb-3 bg-white relative overflow-hidden"
+    />
+  );
 };
